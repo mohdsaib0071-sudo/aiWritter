@@ -32,8 +32,7 @@ const TOOLS = [
   { id: 'poem',      label: 'Poem Writer',     description: 'Words into beautiful poems.',      emoji: '❤️', accent: '#E91E8C', bg: '#280D1E', prompt: 'Write a beautiful poem about: '    },
   { id: 'email',     label: 'Email Writer',    description: 'Write personalized emails.',       emoji: '🔥', accent: '#FFB300', bg: '#261D00', prompt: 'Write a professional email about: ' },
   { id: 'paragraph', label: 'Paragraph Writer',description: 'Clear paragraphs for any topic.',  emoji: '📝', accent: '#9C6FFF', bg: '#1A1230', prompt: 'Write a clear paragraph about: '    },
-  { id: 'thesis',    label: 'Thesis Statement',description: 'Accurate thesis statements.',      emoji: '📋', accent: '#FF9800', bg: '#231500', prompt: 'Write a thesis statement for: '     },
-  {
+ {
     id: 'history',
     label: 'History',
     description: 'View your previous content.',
