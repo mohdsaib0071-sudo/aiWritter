@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ThemeProvider } from './src/ThemeContext'; // ✅ correct path
 import StackNavigator from './navigation/StackNavigator';
 
 export default function App() {
@@ -8,26 +8,25 @@ export default function App() {
   const [userToken, setUserToken] = useState(null);
 
   useEffect(() => {
-    const checkToken = async () => {
+    const checkLogin = async () => {
       try {
-        const token = await AsyncStorage.getItem('TOKEN');
+        const token = await AsyncStorage.getItem('user_token');
         setUserToken(token);
-      } catch (e) {
-        setUserToken(null);
+      } catch (error) {
+        console.log('Error reading token:', error);
       } finally {
         setIsLoading(false);
       }
     };
-    checkToken();
+
+    checkLogin();
   }, []);
 
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0D0D12' }}>
-        <ActivityIndicator size="large" color="#FF6B35" />
-      </View>
-    );
-  }
+  if (isLoading) return null;
 
-  return <StackNavigator userToken={userToken} />;
+  return (
+    <ThemeProvider>
+      <StackNavigator userToken={userToken} />
+    </ThemeProvider>
+  );
 }

@@ -4,6 +4,7 @@ import {
   ScrollView, SafeAreaView, StatusBar, Platform,
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
+import { useTheme } from '../ThemeContext'; // ✅ IMPORT
 
 const DARK_BG = "#0D0D12";
 const CARD_BG = "#18181F";
@@ -17,6 +18,7 @@ export default function ParagraphWriterScreen({ navigation }) {
   const [topic, setTopic] = useState("");
   const [tone, setTone] = useState("Formal");
   const [length, setLength] = useState("Short");
+  const { theme } = useTheme();
 
   return (
     <SafeAreaView style={styles.safeArea}>

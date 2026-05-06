@@ -43,7 +43,7 @@ export default function SplashScreen({ navigation }) {
   const pills = [
     { label: "Email",  bg: "#ede9fe", color: "#6d28d9", border: "#c4b5fd" },
     { label: "Essay",  bg: "#e0f2fe", color: "#0369a1", border: "#7dd3fc" },
-    { label: "Poem",   bg: "#fdf4ff", color: "#a21caf", border: "#e879f9" },
+    { label: "Poem",   bg: "#fdf4ff", color: "#74287a", border: "#e879f9" },
   ];
 
   return (

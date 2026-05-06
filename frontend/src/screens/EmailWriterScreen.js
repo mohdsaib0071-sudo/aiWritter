@@ -1,19 +1,13 @@
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-  SafeAreaView,
-  StatusBar,
-  Platform,
-  Modal,
-  ActivityIndicator,
-  Alert,
+  View, Text, StyleSheet, TouchableOpacity, TextInput,
+  ScrollView, SafeAreaView, StatusBar, Platform,
+  Modal, ActivityIndicator, Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
+import { saveToHistory } from "../utils/saveHistory"; // ✅ ADD
+import { useTheme } from '../ThemeContext'; // ✅ IMPORT
+
 
 const DARK_BG = "#0D0D12";
 const CARD_BG = "#18181F";
@@ -22,6 +16,7 @@ const TEXT_MAIN = "#F2F2F7";
 const TEXT_SUB = "#8B8B9A";
 const ORANGE = "#FF6B35";
 const BORDER = "#2A2A35";
+
 
 const TAB_WRITE = "write";
 const TAB_REPLY = "reply";
@@ -37,6 +32,7 @@ export default function EmailWriterScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [generatedEmail, setGeneratedEmail] = useState("");
   const [showResultModal, setShowResultModal] = useState(false);
+  const { theme } = useTheme();
 
   const currentPlaceholder =
     activeTab === TAB_REPLY
@@ -44,9 +40,7 @@ export default function EmailWriterScreen({ navigation }) {
       : "i.e The power of gratitude...";
 
   const currentLabel = activeTab === TAB_REPLY ? "Reply topic" : "Email topic";
-
-  const currentButtonText =
-    activeTab === TAB_REPLY ? "Generate Reply" : "Generate Email";
+  const currentButtonText = activeTab === TAB_REPLY ? "Generate Reply" : "Generate Email";
 
   const handleTabPress = (tab) => {
     setActiveTab(tab);
@@ -59,7 +53,6 @@ export default function EmailWriterScreen({ navigation }) {
 
   const getWriteEmailContent = (inputTopic) => {
     const cleanTopic = inputTopic.trim();
-
     return {
       subject: `Regarding ${cleanTopic}`,
       body: `Dear Sir/Madam,
@@ -79,7 +72,6 @@ Best regards,
 
   const getReplyEmailContent = (inputTopic) => {
     const cleanTopic = inputTopic.trim();
-
     return {
       subject: `Re: ${cleanTopic}`,
       body: `Dear Sir/Madam,
@@ -109,12 +101,14 @@ Best regards,
           ? getReplyEmailContent(topic)
           : getWriteEmailContent(topic);
 
-      const finalText = `Subject: ${result.subject}
-
-${result.body}`;
+      const finalText = `Subject: ${result.subject}\n\n${result.body}`;
 
       setGeneratedEmail(finalText);
       setShowResultModal(true);
+
+      // ✅ History save
+      await saveToHistory("Email Writer", topic, finalText);
+
     } catch (error) {
       Alert.alert("Error", error?.message || "Email generate nahi ho paya.");
     } finally {
@@ -135,7 +129,6 @@ ${result.body}`;
           >
             <Icon name="chevron-left" size={20} color={TEXT_MAIN} />
           </TouchableOpacity>
-
           <Text style={styles.headerTitle}>Email Writer</Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -179,7 +172,6 @@ ${result.body}`;
               textAlignVertical="top"
               style={styles.topicInput}
             />
-
             <TouchableOpacity
               activeOpacity={0.9}
               style={styles.sampleBtn}
@@ -222,7 +214,6 @@ ${result.body}`;
               <Text style={styles.modalTitle}>
                 {activeTab === TAB_REPLY ? "Generated Reply" : "Generated Email"}
               </Text>
-
               <TouchableOpacity
                 onPress={() => setShowResultModal(false)}
                 style={styles.modalCloseBtn}
@@ -256,242 +247,83 @@ ${result.body}`;
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
-    backgroundColor: DARK_BG,
+    flex: 1, backgroundColor: DARK_BG,
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
-
-  root: {
-    flex: 1,
-    backgroundColor: DARK_BG,
-  },
-
+  root: { flex: 1, backgroundColor: DARK_BG },
   header: {
-    padding: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#1F1F2A",
+    padding: 18, flexDirection: "row", alignItems: "center",
+    borderBottomWidth: 1, borderBottomColor: "#1F1F2A",
   },
-
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: CARD_BG,
-    borderWidth: 1,
-    borderColor: BORDER,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 44, height: 44, borderRadius: 14, backgroundColor: CARD_BG,
+    borderWidth: 1, borderColor: BORDER, alignItems: "center", justifyContent: "center",
   },
-
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    color: TEXT_MAIN,
-    fontSize: 18,
-    fontWeight: "800",
-  },
-
-  headerSpacer: {
-    width: 44,
-  },
-
-  scrollContent: {
-    padding: 18,
-    paddingBottom: Platform.OS === "ios" ? 40 : 28,
-  },
-
+  headerTitle: { flex: 1, textAlign: "center", color: TEXT_MAIN, fontSize: 18, fontWeight: "800" },
+  headerSpacer: { width: 44 },
+  scrollContent: { padding: 18, paddingBottom: Platform.OS === "ios" ? 40 : 28 },
   tabRow: {
-    flexDirection: "row",
-    backgroundColor: CARD_BG,
-    borderRadius: 16,
-    marginBottom: 20,
-    padding: 4,
+    flexDirection: "row", backgroundColor: CARD_BG,
+    borderRadius: 16, marginBottom: 20, padding: 4,
   },
-
   activeTab: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    alignItems: "center",
-    justifyContent: "center",
+    flex: 1, backgroundColor: "#fff", borderRadius: 12,
+    paddingVertical: 14, paddingHorizontal: 10,
+    alignItems: "center", justifyContent: "center",
   },
-
   tab: {
-    flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    alignItems: "center",
-    justifyContent: "center",
+    flex: 1, paddingVertical: 14, paddingHorizontal: 10,
+    alignItems: "center", justifyContent: "center",
   },
-
-  activeTabText: {
-    color: "#000",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-
-  tabText: {
-    color: TEXT_SUB,
-    fontSize: 14,
-    fontWeight: "500",
-  },
-
-  label: {
-    color: TEXT_MAIN,
-    marginBottom: 10,
-    fontWeight: "700",
-    fontSize: 14,
-  },
-
+  activeTabText: { color: "#000", fontWeight: "700", fontSize: 14 },
+  tabText: { color: TEXT_SUB, fontSize: 14, fontWeight: "500" },
+  label: { color: TEXT_MAIN, marginBottom: 10, fontWeight: "700", fontSize: 14 },
   topicBox: {
-    backgroundColor: CARD_BG,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: BORDER,
-    padding: 15,
-    marginBottom: 20,
-    minHeight: 170,
+    backgroundColor: CARD_BG, borderRadius: 20, borderWidth: 1,
+    borderColor: BORDER, padding: 15, marginBottom: 20, minHeight: 170,
   },
-
   topicInput: {
-    color: TEXT_MAIN,
-    minHeight: 110,
-    fontSize: 14,
-    lineHeight: 22,
-    padding: 0,
-    marginBottom: 14,
+    color: TEXT_MAIN, minHeight: 110, fontSize: 14,
+    lineHeight: 22, padding: 0, marginBottom: 14,
   },
-
   sampleBtn: {
-    alignSelf: "flex-end",
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: CARD_BG2,
-    borderWidth: 1,
-    borderColor: BORDER,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 14,
+    alignSelf: "flex-end", flexDirection: "row", alignItems: "center",
+    backgroundColor: CARD_BG2, borderWidth: 1, borderColor: BORDER,
+    paddingHorizontal: 14, paddingVertical: 9, borderRadius: 14,
   },
-
-  sampleBtnText: {
-    color: TEXT_MAIN,
-    fontSize: 13,
-    fontWeight: "600",
-    marginLeft: 6,
-  },
-
+  sampleBtnText: { color: TEXT_MAIN, fontSize: 13, fontWeight: "600", marginLeft: 6 },
   generateBtn: {
-    height: 56,
-    backgroundColor: ORANGE,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: ORANGE,
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.28,
-    shadowRadius: 10,
-    elevation: 5,
+    height: 56, backgroundColor: ORANGE, borderRadius: 18,
+    alignItems: "center", justifyContent: "center",
+    shadowColor: ORANGE, shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.28, shadowRadius: 10, elevation: 5,
   },
-
-  generateBtnDisabled: {
-    opacity: 0.85,
-  },
-
-  generateText: {
-    color: "#fff",
-    fontWeight: "800",
-    fontSize: 15,
-    letterSpacing: 0.2,
-  },
-
-  loadingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  generateTextLoading: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 0.2,
-    marginLeft: 10,
-  },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
-    justifyContent: "flex-end",
-  },
-
+  generateBtnDisabled: { opacity: 0.85 },
+  generateText: { color: "#fff", fontWeight: "800", fontSize: 15, letterSpacing: 0.2 },
+  loadingRow: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
+  generateTextLoading: { color: "#FFFFFF", fontSize: 15, fontWeight: "800", letterSpacing: 0.2, marginLeft: 10 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "flex-end" },
   modalCard: {
-    backgroundColor: CARD_BG,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderWidth: 1,
-    borderColor: BORDER,
-    maxHeight: "82%",
-    paddingTop: 16,
-    paddingHorizontal: 18,
+    backgroundColor: CARD_BG, borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    borderWidth: 1, borderColor: BORDER, maxHeight: "82%",
+    paddingTop: 16, paddingHorizontal: 18,
     paddingBottom: Platform.OS === "ios" ? 28 : 20,
   },
-
   modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 14,
+    flexDirection: "row", alignItems: "center",
+    justifyContent: "space-between", marginBottom: 14,
   },
-
-  modalTitle: {
-    color: TEXT_MAIN,
-    fontSize: 18,
-    fontWeight: "800",
-  },
-
+  modalTitle: { color: TEXT_MAIN, fontSize: 18, fontWeight: "800" },
   modalCloseBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: CARD_BG2,
-    borderWidth: 1,
-    borderColor: BORDER,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 36, height: 36, borderRadius: 12, backgroundColor: CARD_BG2,
+    borderWidth: 1, borderColor: BORDER, alignItems: "center", justifyContent: "center",
   },
-
-  modalScroll: {
-    flexGrow: 0,
-  },
-
-  modalScrollContent: {
-    paddingBottom: 14,
-  },
-
-  modalText: {
-    color: TEXT_MAIN,
-    fontSize: 14,
-    lineHeight: 24,
-    fontWeight: "500",
-  },
-
+  modalScroll: { flexGrow: 0 },
+  modalScrollContent: { paddingBottom: 14 },
+  modalText: { color: TEXT_MAIN, fontSize: 14, lineHeight: 24, fontWeight: "500" },
   modalActionBtn: {
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: ORANGE,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 8,
+    height: 52, borderRadius: 16, backgroundColor: ORANGE,
+    alignItems: "center", justifyContent: "center", marginTop: 8,
   },
-
-  modalActionBtnText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "800",
-  },
+  modalActionBtnText: { color: "#FFFFFF", fontSize: 15, fontWeight: "800" },
 });

@@ -15,31 +15,26 @@ import EmailWriterScreen from "../src/screens/EmailWriterScreen";
 import HistoryScreen from "../src/screens/HistoryScreen";
 import LanguageScreen from '../src/screens/LanguageScreen';
 
+
 const Stack = createNativeStackNavigator();
 
 export default function StackNavigator({ userToken }) {
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{ headerShown: false }}
-      >
-        {/* Splash hamesha pehle */}
-        <Stack.Screen name="Splash" component={SplashScreen} />
-
-        {/* Login/Signup hamesha available */}
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Signup" component={SignupScreen} />
-
-        {/* Logged in screens */}
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-        <Stack.Screen name="EssayWriter" component={EssayWriterScreen} />
-        <Stack.Screen name="StoryWriter" component={StoryWriterScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="PoemWriter" component={PoemWriterScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="EmailWriter" component={EmailWriterScreen} />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Splash"          component={SplashScreen} />
+        <Stack.Screen name="Login"           component={LoginScreen} />
+        <Stack.Screen name="Signup"          component={SignupScreen} />
+        <Stack.Screen name="Home"            component={HomeScreen} />
+        <Stack.Screen name="Settings"        component={SettingsScreen} />
+    
+        <Stack.Screen name="EssayWriter"     component={EssayWriterScreen} />
+        <Stack.Screen name="StoryWriter"     component={StoryWriterScreen} />
+        <Stack.Screen name="PoemWriter"      component={PoemWriterScreen} />
+        <Stack.Screen name="EmailWriter"     component={EmailWriterScreen} />
         <Stack.Screen name="ParagraphWriter" component={ParagraphWriterScreen} />
-        <Stack.Screen name="History" component={HistoryScreen} />
-        <Stack.Screen name="language" component={LanguageScreen} />
+        <Stack.Screen name="History"         component={HistoryScreen} />
+        <Stack.Screen name="language"        component={LanguageScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

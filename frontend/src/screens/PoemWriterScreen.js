@@ -1,229 +1,35 @@
 import React, { useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-  SafeAreaView,
-  StatusBar,
-  Platform,
-  Modal,
-  ActivityIndicator,
-  Alert,
+  View, Text, StyleSheet, TouchableOpacity, TextInput,
+  ScrollView, SafeAreaView, StatusBar, Platform,
+  Modal, ActivityIndicator, Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
+import { saveToHistory } from "../utils/saveHistory";
+import { useTheme } from '../ThemeContext';
 
-const DARK_BG = "#0D0D12";
-const CARD_BG = "#18181F";
-const CARD_BG2 = "#1E1E27";
-const TEXT_MAIN = "#F2F2F7";
-const TEXT_SUB = "#8B8B9A";
 const ORANGE = "#FF6B35";
-const BORDER = "#2A2A35";
-
 const CREATIVITY_OPTIONS = ["Standard", "Creative", "Highly Creative"];
 const POEM_TYPE_OPTIONS = ["Villanelle", "Sonnet", "Haiku", "Free Verse", "Limerick", "Ode", "Ballad"];
+const SAMPLE_TOPICS = { Villanelle: "Twinkle twinkle in a sleepless city sky", Sonnet: "A quiet love that waits through every season", Haiku: "Morning dew on silent grass", "Free Verse": "The noise inside a lonely heart", Limerick: "A clever old man from Delhi", Ode: "The beauty of moonlight after rain", Ballad: "A traveler walking home through storms" };
 
-const SAMPLE_TOPICS = {
-  Villanelle: "Twinkle twinkle in a sleepless city sky",
-  Sonnet: "A quiet love that waits through every season",
-  Haiku: "Morning dew on silent grass",
-  "Free Verse": "The noise inside a lonely heart",
-  Limerick: "A clever old man from Delhi",
-  Ode: "The beauty of moonlight after rain",
-  Ballad: "A traveler walking home through storms",
-};
-
-const getCreativityLine = (creativity) => {
-  if (creativity === "Highly Creative") {
-    return "with vivid images, unusual metaphors, and emotionally rich language";
-  }
-  if (creativity === "Creative") {
-    return "with expressive words and poetic imagination";
-  }
-  return "with clear and graceful poetic language";
-};
-
-const generateVillanelle = (topic, creativity) => {
-  const lineA1 = `${topic}, you echo through the night`;
-  const lineA2 = `Still you return in soft and silver light`;
-
-  return [
-    lineA1,
-    `You move through silent rooms beyond my sight,`,
-    lineA2,
-    ``,
-    `Across my thoughts you wander out of view,`,
-    `You leave behind a tender trace and hue,`,
-    lineA1,
-    ``,
-    `The darkened sky feels deeper, calm, and bright,`,
-    `As if the stars themselves remember you,`,
-    lineA2,
-    ``,
-    `The heart keeps turning toward what feels so true,`,
-    `Even when dawn dissolves the fragile blue,`,
-    lineA1,
-    ``,
-    `And in that hush where dreams and mornings meet,`,
-    `Your memory walks on slow and careful feet,`,
-    lineA2,
-    ``,
-    `So let this song remain, both old and new,`,
-    `A circle made of longing pulling through,`,
-    lineA1,
-    lineA2,
-    ``,
-    `[Tone: ${getCreativityLine(creativity)}]`,
-  ].join("\n");
-};
-
-const generateSonnet = (topic, creativity) => {
-  return [
-    `When ${topic.toLowerCase()} first brushed against my mind,`,
-    `It stirred a hush no daylight could undo,`,
-    `A fragile thread of wonder, finely twined,`,
-    `That bound the passing hour to something true.`,
-    ``,
-    `It moved like music through an open door,`,
-    `And filled the quiet spaces of the soul,`,
-    `Till simple things seemed simple nevermore,`,
-    `And broken pieces leaned to become whole.`,
-    ``,
-    `Though time may test the shape of what remains,`,
-    `And seasons teach the heart to bend with grace,`,
-    `Some beauty lives beneath our hidden pains,`,
-    `And leaves its light on every darkened place.`,
-    ``,
-    `So let ${topic.toLowerCase()} stay, refined, and bright,`,
-    `A small forever glowing through the night.`,
-    ``,
-    `[Tone: ${getCreativityLine(creativity)}]`,
-  ].join("\n");
-};
-
-const generateHaiku = (topic, creativity) => {
-  const creativeTag =
-    creativity === "Highly Creative"
-      ? "dreams bloom in still air"
-      : creativity === "Creative"
-      ? "soft colors drift near"
-      : "calm silence settles";
-
-  return [
-    `${topic}`,
-    creativeTag,
-    `night listens softly`,
-    ``,
-    `[Tone: ${getCreativityLine(creativity)}]`,
-  ].join("\n");
-};
-
-const generateFreeVerse = (topic, creativity) => {
-  return [
-    `${topic}`,
-    `arrives without warning,`,
-    `like a thought standing quietly at the door`,
-    `waiting to be noticed.`,
-    ``,
-    `It does not ask permission.`,
-    `It enters the room,`,
-    `sits beside memory,`,
-    `and turns ordinary silence`,
-    `into something full of meaning.`,
-    ``,
-    `I watch it change the air.`,
-    `The walls seem softer.`,
-    `The night becomes larger.`,
-    `Even my unfinished feelings`,
-    `begin to speak in complete sentences.`,
-    ``,
-    `And for a moment,`,
-    `nothing is wasted,`,
-    `not the ache,`,
-    `not the hope,`,
-    `not even the distance between what I feel and what I can say.`,
-    ``,
-    `That is what ${topic.toLowerCase()} does.`,
-    `It remains, gently,`,
-    `until the heart learns how to answer.`,
-    ``,
-    `[Tone: ${getCreativityLine(creativity)}]`,
-  ].join("\n");
-};
-
-const generateLimerick = (topic, creativity) => {
-  return [
-    `There once was a feeling called ${topic},`,
-    `That danced in a way quite hypnotic,`,
-    `It sparkled all day,`,
-    `Then floated away,`,
-    `Yet returned with a grin quite melodic.`,
-    ``,
-    `[Tone: ${getCreativityLine(creativity)}]`,
-  ].join("\n");
-};
-
-const generateOde = (topic, creativity) => {
-  return [
-    `O ${topic}, gentle keeper of the hour,`,
-    `You lean upon the edges of the day`,
-    `And turn the smallest moment to a flower`,
-    `That blooms in thought long after light gives way.`,
-    ``,
-    `You teach the weary spirit how to stand,`,
-    `You place a softer meaning in the air,`,
-    `And like a patient, warm, and open hand,`,
-    `You make the hidden parts of living bear.`,
-    ``,
-    `Remain awhile within this restless chest,`,
-    `And let your quiet brightness never part;`,
-    `For in your presence language does its best`,
-    `To name the tender weather of the heart.`,
-    ``,
-    `[Tone: ${getCreativityLine(creativity)}]`,
-  ].join("\n");
-};
-
-const generateBallad = (topic, creativity) => {
-  return [
-    `There walked a soul through wind and rain,`,
-    `Beneath a fading sky,`,
-    `And ${topic.toLowerCase()} moved beside that soul`,
-    `Like stars that never die.`,
-    ``,
-    `Through broken roads and distant towns,`,
-    `Through loss too deep to name,`,
-    `It kept a quiet fire alive`,
-    `Inside a heart of flame.`,
-    ``,
-    `And when at last the dawn appeared`,
-    `Across the hills so wide,`,
-    `That faithful song of ${topic.toLowerCase()}`,
-    `Still traveled by their side.`,
-    ``,
-    `[Tone: ${getCreativityLine(creativity)}]`,
-  ].join("\n");
-};
+const getCreativityLine = (c) => c === "Highly Creative" ? "with vivid images and emotionally rich language" : c === "Creative" ? "with expressive words and poetic imagination" : "with clear and graceful poetic language";
 
 const generatePoemByType = ({ topic, poemType, creativity }) => {
-  const cleanedTopic = topic.trim();
-
-  if (poemType === "Villanelle") return generateVillanelle(cleanedTopic, creativity);
-  if (poemType === "Sonnet") return generateSonnet(cleanedTopic, creativity);
-  if (poemType === "Haiku") return generateHaiku(cleanedTopic, creativity);
-  if (poemType === "Free Verse") return generateFreeVerse(cleanedTopic, creativity);
-  if (poemType === "Limerick") return generateLimerick(cleanedTopic, creativity);
-  if (poemType === "Ode") return generateOde(cleanedTopic, creativity);
-  if (poemType === "Ballad") return generateBallad(cleanedTopic, creativity);
-
-  return generateFreeVerse(cleanedTopic, creativity);
+  const t = topic.trim();
+  const cl = getCreativityLine(creativity);
+  if (poemType === "Haiku") return `${t}\n${creativity === "Highly Creative" ? "dreams bloom in still air" : "soft colors drift near"}\nnight listens softly\n\n[Tone: ${cl}]`;
+  if (poemType === "Limerick") return `There once was a feeling called ${t},\nThat danced in a way quite hypnotic,\nIt sparkled all day,\nThen floated away,\nYet returned with a grin quite melodic.\n\n[Tone: ${cl}]`;
+  if (poemType === "Sonnet") return `When ${t.toLowerCase()} first brushed against my mind,\nIt stirred a hush no daylight could undo,\nA fragile thread of wonder, finely twined,\nThat bound the passing hour to something true.\n\nIt moved like music through an open door,\nAnd filled the quiet spaces of the soul,\nTill simple things seemed simple nevermore,\nAnd broken pieces leaned to become whole.\n\nThough time may test the shape of what remains,\nAnd seasons teach the heart to bend with grace,\nSome beauty lives beneath our hidden pains,\nAnd leaves its light on every darkened place.\n\nSo let ${t.toLowerCase()} stay, refined, and bright,\nA small forever glowing through the night.\n\n[Tone: ${cl}]`;
+  if (poemType === "Free Verse") return `${t}\narrives without warning,\nlike a thought standing quietly at the door\nwaiting to be noticed.\n\nIt does not ask permission.\nIt enters the room,\nsits beside memory,\nand turns ordinary silence\ninto something full of meaning.\n\nAnd for a moment,\nnothing is wasted,\nnot the ache, not the hope.\n\nThat is what ${t.toLowerCase()} does.\n\n[Tone: ${cl}]`;
+  if (poemType === "Ode") return `O ${t}, gentle keeper of the hour,\nYou lean upon the edges of the day\nAnd turn the smallest moment to a flower\nThat blooms in thought long after light gives way.\n\nRemain awhile within this restless chest,\nAnd let your quiet brightness never part;\nFor in your presence language does its best\nTo name the tender weather of the heart.\n\n[Tone: ${cl}]`;
+  if (poemType === "Ballad") return `There walked a soul through wind and rain,\nBeneath a fading sky,\nAnd ${t.toLowerCase()} moved beside that soul\nLike stars that never die.\n\nThrough broken roads and distant towns,\nThrough loss too deep to name,\nIt kept a quiet fire alive\nInside a heart of flame.\n\n[Tone: ${cl}]`;
+  // Villanelle
+  return `${t}, you echo through the night\nYou move through silent rooms beyond my sight,\nStill you return in soft and silver light\n\nAcross my thoughts you wander out of view,\nYou leave behind a tender trace and hue,\n${t}, you echo through the night\n\nThe darkened sky feels deeper, calm, and bright,\nAs if the stars themselves remember you,\nStill you return in soft and silver light\n\n[Tone: ${cl}]`;
 };
 
 export default function PoemWriterScreen({ navigation }) {
-  const [selectedLength, setSelectedLength] = useState("short");
+  const { theme } = useTheme();
   const [topic, setTopic] = useState("");
   const [creativity, setCreativity] = useState("Creative");
   const [poemType, setPoemType] = useState("Villanelle");
@@ -233,46 +39,18 @@ export default function PoemWriterScreen({ navigation }) {
   const [generatedPoem, setGeneratedPoem] = useState("");
   const [showResultModal, setShowResultModal] = useState(false);
 
-  const sampleTopic = useMemo(() => {
-    return SAMPLE_TOPICS[poemType] || "The light of the moon";
-  }, [poemType]);
-
-  const closeAll = () => {
-    setShowCreativityDrop(false);
-    setShowPoemTypeDrop(false);
-  };
-
-  const handleLengthPress = (len) => {
-    if (len !== "short") {
-      Alert.alert("Locked", `${len.charAt(0).toUpperCase() + len.slice(1)} option abhi locked hai.`);
-      return;
-    }
-    setSelectedLength("short");
-  };
-
-  const handleSampleText = () => {
-    setTopic(sampleTopic);
-  };
+  const sampleTopic = useMemo(() => SAMPLE_TOPICS[poemType] || "The light of the moon", [poemType]);
+  const closeAll = () => { setShowCreativityDrop(false); setShowPoemTypeDrop(false); };
 
   const handleGeneratePoem = async () => {
     closeAll();
-
-    if (!topic.trim()) {
-      Alert.alert("Topic required", "Please enter a topic first.");
-      return;
-    }
-
+    if (!topic.trim()) { Alert.alert("Topic required", "Please enter a topic first."); return; }
     try {
       setLoading(true);
-
-      const poem = generatePoemByType({
-        topic,
-        poemType,
-        creativity,
-      });
-
+      const poem = generatePoemByType({ topic, poemType, creativity });
       setGeneratedPoem(poem);
       setShowResultModal(true);
+      await saveToHistory("Poem Writer", topic, poem);
     } catch (error) {
       Alert.alert("Error", error?.message || "Poem generate nahi ho paayi.");
     } finally {
@@ -280,199 +58,88 @@ export default function PoemWriterScreen({ navigation }) {
     }
   };
 
+  const renderDrop = (label, value, options, show, setShow, setValue) => (
+    <>
+      <Text style={[styles.label, { color: theme.textMain }]}>{label}</Text>
+      <TouchableOpacity activeOpacity={0.9}
+        style={[styles.dropdown, { backgroundColor: theme.cardBg, borderColor: theme.border }]}
+        onPress={() => { const n = !show; closeAll(); setShow(n); }}>
+        <Text style={[styles.dropdownText, { color: theme.textMain }]}>{value}</Text>
+        <Icon name={show ? "chevron-up" : "chevron-down"} size={18} color={theme.textMain} />
+      </TouchableOpacity>
+      {show && (
+        <View style={[styles.dropdownMenu, { backgroundColor: theme.cardBg2, borderColor: theme.border }]}>
+          {options.map((opt, i) => (
+            <TouchableOpacity key={opt}
+              style={[styles.dropdownItem, { borderBottomColor: theme.border }, value === opt && { backgroundColor: theme.cardBg }, i === options.length - 1 && { borderBottomWidth: 0 }]}
+              onPress={() => { setValue(opt); setShow(false); }}>
+              <Text style={[styles.dropdownItemText, { color: value === opt ? theme.textMain : theme.textSub }, value === opt && { fontWeight: "700" }]}>{opt}</Text>
+              {value === opt && <Icon name="check" size={14} color={ORANGE} />}
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </>
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar backgroundColor={DARK_BG} barStyle="light-content" />
-      <View style={styles.root}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Icon name="chevron-left" size={20} color={TEXT_MAIN} />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.bg }]}>
+      <StatusBar backgroundColor={theme.bg} barStyle={theme.statusBar} />
+      <View style={[styles.root, { backgroundColor: theme.bg }]}>
+        <View style={[styles.header, { backgroundColor: theme.bg, borderBottomColor: theme.border }]}>
+          <TouchableOpacity activeOpacity={0.85}
+            style={[styles.backButton, { backgroundColor: theme.cardBg, borderColor: theme.border }]}
+            onPress={() => navigation.goBack()}>
+            <Icon name="chevron-left" size={20} color={theme.textMain} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Poem Writer</Text>
+          <Text style={[styles.headerTitle, { color: theme.textMain }]}>Poem Writer</Text>
           <View style={styles.headerRightSpace} />
         </View>
 
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.lengthRow}>
-            {["short", "medium", "long"].map((len) => (
-              <TouchableOpacity
-                key={len}
-                activeOpacity={0.9}
-                style={[
-                  styles.lengthButton,
-                  selectedLength === len && len === "short" ? styles.lengthButtonActive : null,
-                ]}
-                onPress={() => handleLengthPress(len)}
-              >
-                <View style={styles.lockRow}>
-                  <Text
-                    style={[
-                      styles.lengthButtonText,
-                      selectedLength === len && len === "short" ? styles.lengthButtonTextActive : null,
-                    ]}
-                  >
-                    {len.charAt(0).toUpperCase() + len.slice(1)}
-                  </Text>
-                  {len !== "short" && (
-                    <Icon name="lock" size={12} color={TEXT_SUB} style={styles.lockIcon} />
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <Text style={styles.label}>Enter Topic</Text>
-          <View style={styles.topicBox}>
-            <TextInput
-              value={topic}
-              onChangeText={setTopic}
-              placeholder="i.e The power of gratitude..."
-              placeholderTextColor={TEXT_SUB}
-              multiline
-              textAlignVertical="top"
-              style={styles.topicInput}
-            />
-            <TouchableOpacity activeOpacity={0.9} style={styles.sampleBtn} onPress={handleSampleText}>
-              <Icon name="plus" size={15} color="#FFFFFF" />
-              <Text style={styles.sampleBtnText}>Sample text</Text>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <Text style={[styles.label, { color: theme.textMain }]}>Enter Topic</Text>
+          <View style={[styles.topicBox, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+            <TextInput value={topic} onChangeText={setTopic} placeholder="i.e The power of gratitude..."
+              placeholderTextColor={theme.textSub} multiline textAlignVertical="top"
+              style={[styles.topicInput, { color: theme.textMain }]} />
+            <TouchableOpacity activeOpacity={0.9}
+              style={[styles.sampleBtn, { backgroundColor: theme.cardBg2, borderColor: theme.border }]}
+              onPress={() => setTopic(sampleTopic)}>
+              <Icon name="plus" size={15} color={theme.textMain} />
+              <Text style={[styles.sampleBtnText, { color: theme.textMain }]}>Sample text</Text>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.label}>Set Creativity</Text>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            style={styles.dropdown}
-            onPress={() => {
-              const next = !showCreativityDrop;
-              closeAll();
-              setShowCreativityDrop(next);
-            }}
-          >
-            <Text style={styles.dropdownText}>{creativity}</Text>
-            <Icon name={showCreativityDrop ? "chevron-up" : "chevron-down"} size={18} color={TEXT_MAIN} />
-          </TouchableOpacity>
+          {renderDrop("Set Creativity", creativity, CREATIVITY_OPTIONS, showCreativityDrop, setShowCreativityDrop, setCreativity)}
+          {renderDrop("Poem Type", poemType, POEM_TYPE_OPTIONS, showPoemTypeDrop, setShowPoemTypeDrop, setPoemType)}
 
-          {showCreativityDrop && (
-            <View style={styles.dropdownMenu}>
-              {CREATIVITY_OPTIONS.map((opt, index) => (
-                <TouchableOpacity
-                  key={opt}
-                  style={[
-                    styles.dropdownItem,
-                    creativity === opt && styles.dropdownItemActive,
-                    index === CREATIVITY_OPTIONS.length - 1 && styles.dropdownItemLast,
-                  ]}
-                  onPress={() => {
-                    setCreativity(opt);
-                    setShowCreativityDrop(false);
-                  }}
-                >
-                  <Text style={[styles.dropdownItemText, creativity === opt && styles.dropdownItemTextActive]}>
-                    {opt}
-                  </Text>
-                  {creativity === opt && <Icon name="check" size={14} color={ORANGE} />}
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-
-          <Text style={styles.label}>Poem Type</Text>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            style={styles.dropdown}
-            onPress={() => {
-              const next = !showPoemTypeDrop;
-              closeAll();
-              setShowPoemTypeDrop(next);
-            }}
-          >
-            <Text style={styles.dropdownText}>{poemType}</Text>
-            <Icon name={showPoemTypeDrop ? "chevron-up" : "chevron-down"} size={18} color={TEXT_MAIN} />
-          </TouchableOpacity>
-
-          {showPoemTypeDrop && (
-            <View style={styles.dropdownMenu}>
-              {POEM_TYPE_OPTIONS.map((opt, index) => (
-                <TouchableOpacity
-                  key={opt}
-                  style={[
-                    styles.dropdownItem,
-                    poemType === opt && styles.dropdownItemActive,
-                    index === POEM_TYPE_OPTIONS.length - 1 && styles.dropdownItemLast,
-                  ]}
-                  onPress={() => {
-                    setPoemType(opt);
-                    setShowPoemTypeDrop(false);
-                  }}
-                >
-                  <Text style={[styles.dropdownItemText, poemType === opt && styles.dropdownItemTextActive]}>
-                    {opt}
-                  </Text>
-                  {poemType === opt && <Icon name="check" size={14} color={ORANGE} />}
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-
-          <TouchableOpacity
-            activeOpacity={0.9}
+          <TouchableOpacity activeOpacity={0.9}
             style={[styles.generateBtn, loading && styles.generateBtnDisabled]}
-            onPress={handleGeneratePoem}
-            disabled={loading}
-          >
+            onPress={handleGeneratePoem} disabled={loading}>
             {loading ? (
               <View style={styles.loadingRow}>
                 <ActivityIndicator size="small" color="#FFFFFF" />
-                <Text style={styles.generateBtnTextLoading}>Generating Poem...</Text>
+                <Text style={styles.generateBtnText}>Generating Poem...</Text>
               </View>
-            ) : (
-              <Text style={styles.generateBtnText}>Generate Poem</Text>
-            )}
+            ) : <Text style={styles.generateBtnText}>Generate Poem</Text>}
           </TouchableOpacity>
         </ScrollView>
       </View>
 
-      <Modal
-        visible={showResultModal}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowResultModal(false)}
-      >
+      <Modal visible={showResultModal} animationType="slide" transparent onRequestClose={() => setShowResultModal(false)}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
+          <View style={[styles.modalCard, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Generated Poem</Text>
-              <TouchableOpacity
-                onPress={() => setShowResultModal(false)}
-                style={styles.modalCloseBtn}
-                activeOpacity={0.85}
-              >
-                <Icon name="x" size={18} color={TEXT_MAIN} />
+              <Text style={[styles.modalTitle, { color: theme.textMain }]}>Generated Poem</Text>
+              <TouchableOpacity onPress={() => setShowResultModal(false)}
+                style={[styles.modalCloseBtn, { backgroundColor: theme.cardBg2, borderColor: theme.border }]}>
+                <Icon name="x" size={18} color={theme.textMain} />
               </TouchableOpacity>
             </View>
-
-            <ScrollView
-              style={styles.modalScroll}
-              contentContainerStyle={styles.modalScrollContent}
-              showsVerticalScrollIndicator={false}
-            >
-              <Text style={styles.modalStoryText}>{generatedPoem}</Text>
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+              <Text style={[styles.modalText, { color: theme.textMain }]}>{generatedPoem}</Text>
             </ScrollView>
-
-            <TouchableOpacity
-              activeOpacity={0.9}
-              style={styles.modalActionBtn}
-              onPress={() => setShowResultModal(false)}
-            >
+            <TouchableOpacity activeOpacity={0.9} style={styles.modalActionBtn} onPress={() => setShowResultModal(false)}>
               <Text style={styles.modalActionBtnText}>Close</Text>
             </TouchableOpacity>
           </View>
@@ -483,169 +150,35 @@ export default function PoemWriterScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: DARK_BG,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  root: { flex: 1, backgroundColor: DARK_BG },
-  header: {
-    paddingTop: 12,
-    paddingBottom: 12,
-    paddingHorizontal: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#1F1F2A",
-    backgroundColor: DARK_BG,
-  },
-  backButton: {
-    width: 44, height: 44, borderRadius: 14,
-    backgroundColor: CARD_BG, borderWidth: 1, borderColor: BORDER,
-    alignItems: "center", justifyContent: "center",
-  },
-  headerTitle: {
-    flex: 1, textAlign: "center", fontSize: 18,
-    fontWeight: "800", color: TEXT_MAIN, marginHorizontal: 12,
-  },
+  safeArea: { flex: 1, paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
+  root: { flex: 1 },
+  header: { paddingTop: 12, paddingBottom: 12, paddingHorizontal: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1 },
+  backButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  headerTitle: { flex: 1, textAlign: "center", fontSize: 18, fontWeight: "800", marginHorizontal: 12 },
   headerRightSpace: { width: 44 },
   scroll: { flex: 1 },
-  scrollContent: {
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: Platform.OS === "ios" ? 40 : 30,
-    flexGrow: 1,
-  },
-  lengthRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 24 },
-  lengthButton: {
-    width: "31.5%", height: 52, borderRadius: 16,
-    borderWidth: 1, borderColor: BORDER, backgroundColor: CARD_BG,
-    alignItems: "center", justifyContent: "center",
-  },
-  lengthButtonActive: { backgroundColor: ORANGE, borderColor: ORANGE },
-  lengthButtonText: { color: TEXT_MAIN, fontSize: 14, fontWeight: "700" },
-  lengthButtonTextActive: { color: "#FFFFFF" },
-  lockRow: { flexDirection: "row", alignItems: "center" },
-  lockIcon: { marginLeft: 5 },
-  label: { fontSize: 14, fontWeight: "700", color: TEXT_MAIN, marginBottom: 10 },
-  topicBox: {
-    minHeight: 170, backgroundColor: CARD_BG, borderRadius: 20,
-    borderWidth: 1, borderColor: BORDER, padding: 15, marginBottom: 18,
-  },
-  topicInput: {
-    minHeight: 100, color: TEXT_MAIN, fontSize: 14,
-    lineHeight: 21, padding: 0, marginBottom: 14,
-  },
-  sampleBtn: {
-    alignSelf: "flex-end", flexDirection: "row", alignItems: "center",
-    backgroundColor: CARD_BG2, borderWidth: 1, borderColor: BORDER,
-    paddingHorizontal: 14, paddingVertical: 9, borderRadius: 14,
-  },
-  sampleBtnText: { color: TEXT_MAIN, fontSize: 13, fontWeight: "600", marginLeft: 6 },
-  dropdown: {
-    height: 54, backgroundColor: CARD_BG, borderRadius: 18,
-    borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14,
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6,
-  },
-  dropdownText: { color: TEXT_MAIN, fontSize: 14, fontWeight: "600" },
-  dropdownMenu: {
-    backgroundColor: CARD_BG2, borderRadius: 16,
-    borderWidth: 1, borderColor: BORDER, marginBottom: 18, overflow: "hidden",
-  },
-  dropdownItem: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: BORDER,
-  },
-  dropdownItemLast: {
-    borderBottomWidth: 0,
-  },
-  dropdownItemActive: { backgroundColor: "#22222E" },
-  dropdownItemText: { color: TEXT_SUB, fontSize: 14, fontWeight: "500" },
-  dropdownItemTextActive: { color: TEXT_MAIN, fontWeight: "700" },
-  generateBtn: {
-    height: 56, borderRadius: 18, backgroundColor: ORANGE,
-    alignItems: "center", justifyContent: "center", marginTop: 8,
-    shadowColor: ORANGE, shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.28, shadowRadius: 10, elevation: 5,
-  },
-  generateBtnDisabled: {
-    opacity: 0.85,
-  },
+  scrollContent: { paddingHorizontal: 18, paddingTop: 18, paddingBottom: Platform.OS === "ios" ? 40 : 30, flexGrow: 1 },
+  label: { fontSize: 14, fontWeight: "700", marginBottom: 10 },
+  topicBox: { minHeight: 170, borderRadius: 20, borderWidth: 1, padding: 15, marginBottom: 18 },
+  topicInput: { minHeight: 100, fontSize: 14, lineHeight: 21, padding: 0, marginBottom: 14 },
+  sampleBtn: { alignSelf: "flex-end", flexDirection: "row", alignItems: "center", borderWidth: 1, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 14 },
+  sampleBtnText: { fontSize: 13, fontWeight: "600", marginLeft: 6 },
+  dropdown: { height: 54, borderRadius: 18, borderWidth: 1, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
+  dropdownText: { fontSize: 14, fontWeight: "600" },
+  dropdownMenu: { borderRadius: 16, borderWidth: 1, marginBottom: 18, overflow: "hidden" },
+  dropdownItem: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1 },
+  dropdownItemText: { fontSize: 14, fontWeight: "500" },
+  generateBtn: { height: 56, borderRadius: 18, backgroundColor: ORANGE, alignItems: "center", justifyContent: "center", marginTop: 8, shadowColor: ORANGE, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.28, shadowRadius: 10, elevation: 5 },
+  generateBtnDisabled: { opacity: 0.85 },
   generateBtnText: { color: "#FFFFFF", fontSize: 15, fontWeight: "800", letterSpacing: 0.2 },
-  loadingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  generateBtnTextLoading: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 0.2,
-    marginLeft: 10,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
-    justifyContent: "flex-end",
-  },
-  modalCard: {
-    backgroundColor: CARD_BG,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderWidth: 1,
-    borderColor: BORDER,
-    maxHeight: "82%",
-    paddingTop: 16,
-    paddingHorizontal: 18,
-    paddingBottom: Platform.OS === "ios" ? 28 : 20,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 14,
-  },
-  modalTitle: {
-    color: TEXT_MAIN,
-    fontSize: 18,
-    fontWeight: "800",
-  },
-  modalCloseBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: CARD_BG2,
-    borderWidth: 1,
-    borderColor: BORDER,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalScroll: {
-    flexGrow: 0,
-  },
-  modalScrollContent: {
-    paddingBottom: 14,
-  },
-  modalStoryText: {
-    color: TEXT_MAIN,
-    fontSize: 14,
-    lineHeight: 24,
-    fontWeight: "500",
-  },
-  modalActionBtn: {
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: ORANGE,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 8,
-  },
-  modalActionBtnText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "800",
-  },
+  loadingRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "flex-end" },
+  modalCard: { borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, maxHeight: "82%", paddingTop: 16, paddingHorizontal: 18, paddingBottom: Platform.OS === "ios" ? 28 : 20 },
+  modalHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
+  modalTitle: { fontSize: 18, fontWeight: "800" },
+  modalCloseBtn: { width: 36, height: 36, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  modalScroll: { flexGrow: 0, maxHeight: "80%" },
+  modalText: { fontSize: 14, lineHeight: 24, fontWeight: "500", paddingBottom: 14 },
+  modalActionBtn: { height: 52, borderRadius: 16, backgroundColor: ORANGE, alignItems: "center", justifyContent: "center", marginTop: 8 },
+  modalActionBtnText: { color: "#FFFFFF", fontSize: 15, fontWeight: "800" },
 });

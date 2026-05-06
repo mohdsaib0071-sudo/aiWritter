@@ -1,159 +1,149 @@
-import React, { useMemo, useState } from "react";
+import React, { useState, useCallback } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  FlatList,
-  StatusBar,
-  SafeAreaView,
-} from "react-native";
-import Icon from "react-native-vector-icons/Feather";
+  View, Text, StyleSheet, Pressable, FlatList,
+  StatusBar, SafeAreaView, Alert, TouchableOpacity, Platform,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Feather';
+import { useTheme } from '../ThemeContext';
+
+const ORANGE = '#FF6B35';
+const STATUS_BAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 0;
 
 export default function HistoryScreen({ navigation }) {
-  const [selectedTab, setSelectedTab] = useState("All");
+  const { theme } = useTheme();
+  const [selectedTab, setSelectedTab] = useState('All');
+  const [historyData, setHistoryData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const historyData = [
-    {
-      id: "1",
-      type: "Essay Writer",
-      title: "The power of gratitude",
-      preview:
-        "The Power of Gratitude  Gratitude is a simple yet powerful feeling that can bring positive changes to our lives. It is the art of appreciating what we have...",
-      date: "7 Apr 2026",
-    },
-    {
-      id: "2",
-      type: "Essay Writer",
-      title: "hiii",
-      preview:
-        "Hiii: A Simple Greeting  In our daily lives, communication plays a vital role in connecting us with others. One of the most common greetings is hiii...",
-      date: "7 Apr 2026",
-    },
-    {
-      id: "3",
-      type: "Story Writer",
-      title: "Running a successful business requires a combination...",
-      preview:
-        "Keys to Running a Successful Business  Operating a thriving business hinges on a mix of hard work, dedication, and effective decision making...",
-      date: "6 Apr 2026",
-    },
-    {
-      id: "4",
-      type: "Poem Writer",
-      title: "hii",
-      preview:
-        "Not Found  It appears that you have searched for information on 'hii,' but unfortunately, the content you are looking for is not available right now...",
-      date: "25 Mar 2026",
-    },
-  ];
+  useFocusEffect(useCallback(() => {
+    const loadHistory = async () => {
+      try {
+        setLoading(true);
+        const raw = await AsyncStorage.getItem('ai_history');
+        setHistoryData(raw ? JSON.parse(raw) : []);
+      } catch (e) { console.log('Load history error:', e); }
+      finally { setLoading(false); }
+    };
+    loadHistory();
+  }, []));
 
-  const filters = ["All", "Essay Writer", "Story Writer", "Poem Writer"];
+  const deleteItem = (id) => {
+    Alert.alert('Delete', 'Remove this item from history?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        const updated = historyData.filter((h) => h.id !== id);
+        setHistoryData(updated);
+        await AsyncStorage.setItem('ai_history', JSON.stringify(updated));
+      }},
+    ]);
+  };
 
-  const filteredData =
-    selectedTab === "All"
-      ? historyData
-      : historyData.filter((item) => item.type === selectedTab);
+  const clearAll = () => {
+    Alert.alert('Clear All', 'Delete all history?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Clear All', style: 'destructive', onPress: async () => {
+        setHistoryData([]);
+        await AsyncStorage.removeItem('ai_history');
+      }},
+    ]);
+  };
+
+  const filters = ['All', 'Essay Writer', 'Story Writer', 'Poem Writer', 'Email Writer', 'Paragraph Writer'];
+  const filteredData = selectedTab === 'All' ? historyData : historyData.filter((item) => item.type === selectedTab);
 
   const renderFilter = ({ item }) => {
     const active = selectedTab === item;
-
     return (
-      <Pressable
-        onPress={() => setSelectedTab(item)}
-        style={[styles.filterChip, active && styles.activeFilterChip]}
-      >
-        <Text style={[styles.filterText, active && styles.activeFilterText]}>
+      <Pressable onPress={() => setSelectedTab(item)}
+        style={[styles.filterChip,
+          { backgroundColor: active ? 'transparent' : theme.cardBg,
+            borderColor: active ? theme.textMain : 'transparent' }]}>
+        <Text style={[styles.filterText, { color: active ? theme.textMain : theme.textSub, fontWeight: active ? '600' : '500' }]}>
           {item}
         </Text>
       </Pressable>
     );
   };
 
-  const renderHistoryCard = ({ item }) => {
-    return (
-      <Pressable style={styles.card}>
-        <View style={styles.cardTopRow}>
-          <Text style={styles.cardTitle} numberOfLines={1}>
-            Title: {item.title}
-          </Text>
-
-          <Pressable style={styles.menuBtn}>
-            <Icon name="more-vertical" size={20} color="#E5E7EB" />
-          </Pressable>
+  const renderHistoryCard = ({ item }) => (
+    <Pressable style={[styles.card, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+      <View style={styles.cardTopRow}>
+        <View style={[styles.cardTypeBadge, { backgroundColor: theme.cardBg2 }]}>
+          <Text style={styles.cardTypeBadgeText}>{item.type}</Text>
         </View>
+        <Pressable style={styles.deleteBtn} onPress={() => deleteItem(item.id)}>
+          <Icon name="trash-2" size={16} color="#FF5252" />
+        </Pressable>
+      </View>
+      <Text style={[styles.cardTitle, { color: theme.textMain }]} numberOfLines={2}>{item.title}</Text>
+      <Text style={[styles.cardPreview, { color: theme.textSub }]} numberOfLines={3}>{item.preview}</Text>
+      <View style={styles.cardFooter}>
+        <Icon name="calendar" size={12} color={theme.textSub} style={{ marginRight: 5 }} />
+        <Text style={[styles.cardDate, { color: theme.textSub }]}>{item.date}</Text>
+      </View>
+    </Pressable>
+  );
 
-        <Text style={styles.cardPreview} numberOfLines={3}>
-          {item.preview}
-        </Text>
-
-        <Text style={styles.cardMeta}>
-          {item.type} <Text style={styles.separator}>|</Text> {item.date}
-        </Text>
-      </Pressable>
-    );
-  };
+  const renderEmpty = () => (
+    <View style={styles.emptyWrap}>
+      <Text style={styles.emptyEmoji}>🕘</Text>
+      <Text style={[styles.emptyTitle, { color: theme.textMain }]}>No History Yet</Text>
+      <Text style={[styles.emptySubtitle, { color: theme.textSub }]}>
+        Generate essays, poems or stories{'\n'}and they'll appear here.
+      </Text>
+      <TouchableOpacity style={styles.goHomeBtn} onPress={() => navigation.navigate('Home')}>
+        <Text style={styles.goHomeBtnText}>Start Writing</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B0B16" />
-      <View style={styles.container}>
-        <View style={styles.headerRow}>
-          <Text style={styles.heading}>History</Text>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.bg }]}>
+      <StatusBar barStyle={theme.statusBar} backgroundColor={theme.bg} />
+      <View style={[styles.container, { backgroundColor: theme.bg }]}>
 
-          <Pressable style={styles.filterButton}>
-            <Icon name="sliders" size={20} color="#F3F4F6" />
-          </Pressable>
+        <View style={styles.headerRow}>
+          <Text style={[styles.heading, { color: theme.textMain }]}>History</Text>
+          {historyData.length > 0 && (
+            <Pressable style={styles.clearBtn} onPress={clearAll}>
+              <Icon name="trash" size={14} color="#FF5252" />
+              <Text style={styles.clearBtnText}>Clear All</Text>
+            </Pressable>
+          )}
         </View>
+
+        {historyData.length > 0 && (
+          <Text style={[styles.countText, { color: theme.textSub }]}>
+            {filteredData.length} item{filteredData.length !== 1 ? 's' : ''}
+          </Text>
+        )}
 
         <View style={styles.filterListWrap}>
-          <FlatList
-            data={filters}
-            horizontal
-            keyExtractor={(item) => item}
-            renderItem={renderFilter}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterContent}
-          />
+          <FlatList data={filters} horizontal keyExtractor={(item) => item}
+            renderItem={renderFilter} showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterContent} />
         </View>
 
-        <FlatList
-          data={filteredData}
-          keyExtractor={(item) => item.id}
-          renderItem={renderHistoryCard}
-          showsVerticalScrollIndicator={false}
+        <FlatList data={filteredData} keyExtractor={(item) => item.id}
+          renderItem={renderHistoryCard} showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
-        />
+          ListEmptyComponent={!loading ? renderEmpty : null} />
 
         <View style={styles.bottomNavWrap}>
-          <View style={styles.bottomNav}>
-            <Pressable
-              style={styles.navItem}
-              onPress={() => navigation?.navigate("Home")}
-            >
-              <Icon name="home" size={22} color="#D1D5DB" />
-              <Text style={styles.navText}>Home</Text>
+          <View style={[styles.bottomNav, { backgroundColor: theme.bottomNav, borderColor: theme.border }]}>
+            <Pressable style={[styles.navItem, { backgroundColor: theme.cardBg2 }]} onPress={() => navigation?.navigate('Home')}>
+              <Icon name="home" size={22} color={theme.textSub} />
+              <Text style={[styles.navText, { color: theme.textSub }]}>Home</Text>
             </Pressable>
-
-            <Pressable style={[styles.navItem, styles.activeNavItem]}>
-              <Icon name="file-text" size={22} color="#F97316" />
-              <Text style={[styles.navText, styles.activeNavText]}>History</Text>
+            <Pressable style={[styles.navItem, styles.activeNavItem, { backgroundColor: theme.cardBg2 }]}>
+              <Icon name="file-text" size={22} color={ORANGE} />
+              <Text style={[styles.navText, { color: ORANGE, fontWeight: '600' }]}>History</Text>
             </Pressable>
-
-            <Pressable
-              style={styles.navItem}
-              onPress={() => navigation?.navigate("ContactUs")}
-            >
-              <Icon name="message-square" size={22} color="#D1D5DB" />
-              <Text style={styles.navText}>Contact Us</Text>
-            </Pressable>
-
-            <Pressable
-              style={styles.navItem}
-              onPress={() => navigation?.navigate("Settings")}
-            >
-              <Icon name="settings" size={22} color="#D1D5DB" />
-              <Text style={styles.navText}>Settings</Text>
+            <Pressable style={[styles.navItem, { backgroundColor: theme.cardBg2 }]} onPress={() => navigation?.navigate('Settings')}>
+              <Icon name="settings" size={22} color={theme.textSub} />
+              <Text style={[styles.navText, { color: theme.textSub }]}>Settings</Text>
             </Pressable>
           </View>
         </View>
@@ -163,173 +153,36 @@ export default function HistoryScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#0B0B16",
-  },
-
-  container: {
-    flex: 1,
-    backgroundColor: "#0B0B16",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 18,
-  },
-
-  heading: {
-    fontSize: 30,
-    fontWeight: "600",
-    color: "#F9FAFB",
-    letterSpacing: 0.2,
-  },
-
-  filterButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: "#1B1B2C",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  filterListWrap: {
-    marginBottom: 18,
-  },
-
-  filterContent: {
-    paddingRight: 8,
-  },
-
-  filterChip: {
-    minHeight: 52,
-    paddingHorizontal: 20,
-    borderRadius: 18,
-    backgroundColor: "#1A1A29",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: "transparent",
-  },
-
-  activeFilterChip: {
-    backgroundColor: "transparent",
-    borderColor: "#E5E7EB",
-  },
-
-  filterText: {
-    fontSize: 16,
-    color: "#D1D5DB",
-    fontWeight: "500",
-  },
-
-  activeFilterText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
-
-  listContent: {
-    paddingBottom: 130,
-  },
-
-  card: {
-    backgroundColor: "#232332",
-    borderRadius: 24,
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 20,
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.10)",
-  },
-
-  cardTopRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-
-  cardTitle: {
-    flex: 1,
-    fontSize: 15,
-    lineHeight: 22,
-    color: "#F3F4F6",
-    fontWeight: "500",
-    paddingRight: 12,
-  },
-
-  menuBtn: {
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  cardPreview: {
-    fontSize: 14,
-    lineHeight: 24,
-    color: "rgba(255,255,255,0.35)",
-    marginBottom: 18,
-  },
-
-  cardMeta: {
-    fontSize: 15,
-    color: "#F3F4F6",
-    fontWeight: "500",
-  },
-
-  separator: {
-    color: "rgba(255,255,255,0.55)",
-  },
-
-  bottomNavWrap: {
-    position: "absolute",
-    left: 20,
-    right: 20,
-    bottom: 18,
-  },
-
-  bottomNav: {
-    flexDirection: "row",
-    backgroundColor: "#161625",
-    borderRadius: 28,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.10)",
-  },
-
-  navItem: {
-    flex: 1,
-    height: 86,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#202033",
-    marginHorizontal: 4,
-  },
-
-  activeNavItem: {
-    borderWidth: 1,
-    borderColor: "rgba(249,115,22,0.35)",
-  },
-
-  navText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: "#E5E7EB",
-    fontWeight: "500",
-  },
-
-  activeNavText: {
-    color: "#F97316",
-    fontWeight: "600",
-  },
+  safeArea: { flex: 1 },
+  container: { flex: 1, paddingHorizontal: 20, paddingTop: STATUS_BAR_HEIGHT + 16 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  heading: { fontSize: 30, fontWeight: '700', letterSpacing: 0.2 },
+  clearBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#1A0E0E', borderRadius: 12, borderWidth: 1, borderColor: '#FF525233' },
+  clearBtnText: { color: '#FF5252', fontSize: 13, fontWeight: '600' },
+  countText: { fontSize: 13, marginBottom: 14 },
+  filterListWrap: { marginBottom: 18 },
+  filterContent: { paddingRight: 8 },
+  filterChip: { minHeight: 44, paddingHorizontal: 18, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginRight: 10, borderWidth: 1 },
+  filterText: { fontSize: 14 },
+  listContent: { paddingBottom: 140 },
+  card: { borderRadius: 20, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16, marginBottom: 14, borderWidth: 1 },
+  cardTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  cardTypeBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  cardTypeBadgeText: { fontSize: 11, color: ORANGE, fontWeight: '700', letterSpacing: 0.3 },
+  deleteBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: '#2A1010', borderRadius: 8, borderWidth: 1, borderColor: '#FF525222' },
+  cardTitle: { fontSize: 15, fontWeight: '700', marginBottom: 8, lineHeight: 22 },
+  cardPreview: { fontSize: 13, lineHeight: 21, marginBottom: 12 },
+  cardFooter: { flexDirection: 'row', alignItems: 'center' },
+  cardDate: { fontSize: 12, fontWeight: '500' },
+  emptyWrap: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 30 },
+  emptyEmoji: { fontSize: 56, marginBottom: 16 },
+  emptyTitle: { fontSize: 22, fontWeight: '700', marginBottom: 10 },
+  emptySubtitle: { fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 28 },
+  goHomeBtn: { backgroundColor: ORANGE, paddingHorizontal: 30, paddingVertical: 14, borderRadius: 16, elevation: 4 },
+  goHomeBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  bottomNavWrap: { position: 'absolute', left: 20, right: 20, bottom: 18 },
+  bottomNav: { flexDirection: 'row', borderRadius: 28, paddingVertical: 10, paddingHorizontal: 8, borderWidth: 1 },
+  navItem: { flex: 1, height: 72, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginHorizontal: 4 },
+  activeNavItem: { borderWidth: 1, borderColor: 'rgba(249,115,22,0.35)' },
+  navText: { marginTop: 6, fontSize: 12, fontWeight: '500' },
 });

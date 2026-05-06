@@ -1,4 +1,6 @@
 export const API_BASE_URL = "http://10.0.2.2:4000";
+// export const API_BASE_URL = "https://fluffy-moles-search.loca.lt/";
+
 
 export async function registerApi(userData) {
   try {
@@ -29,7 +31,7 @@ export async function loginApi(credentials) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
     });
-
+    console.log("Working");
     // Check if response exists and is JSON
     const data = await response.json().catch(() => null);
 

@@ -6,7 +6,7 @@ const ai = new GoogleGenAI({
 
 const generateEssay = async (req, res) => {
   try {
-    const { topic,length } = req.body;
+    const { topic,length,  } = req.body;
  
      let prompt = topic
    

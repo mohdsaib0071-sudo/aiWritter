@@ -13,6 +13,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
 import { loginApi } from "../config/api";
+import { useTheme } from '../ThemeContext';
 
 const DARK_BG = "#0D0D12";
 const CARD_BG = "#18181F";
